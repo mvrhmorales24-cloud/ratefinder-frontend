@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>RateFinder</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 body{
   font-family: Arial;
@@ -12,15 +14,14 @@ body{
   color:white;
   display:flex;
   justify-content:center;
-  align-items:center;
-  min-height:100vh;
+  padding:30px;
 }
 
 .card{
   background:#1e293b;
-  padding:30px;
+  padding:25px;
   border-radius:16px;
-  width:360px;
+  width:420px;
 }
 
 input,select{
@@ -28,7 +29,6 @@ input,select{
   padding:10px;
   margin:8px 0;
   border-radius:8px;
-  border:none;
 }
 
 button{
@@ -38,14 +38,25 @@ button{
   color:white;
   border:none;
   border-radius:8px;
-  cursor:pointer;
+}
+
+.lang{
+  display:flex;
+  gap:10px;
+}
+
+.lang button{
+  flex:1;
+  background:#334155;
 }
 
 .result{
-  margin-top:20px;
-  background:#0f172a;
-  padding:15px;
-  border-radius:10px;
+  margin-top:15px;
+  white-space:pre-line;
+}
+
+canvas{
+  margin-top:15px;
 }
 </style>
 </head>
@@ -54,25 +65,44 @@ button{
 
 <div class="card">
 
-<h1>💰 RateFinder</h1>
+<div class="lang">
+<button onclick="setLang('es')">ES</button>
+<button onclick="setLang('en')">EN</button>
+</div>
 
-<input id="job" placeholder="job (dev, designer, vet)"/>
+<h2>💰 RateFinder</h2>
 
+<input id="job" placeholder="job"/>
 <select id="level">
 <option value="junior">Junior</option>
 <option value="mid">Mid</option>
 <option value="senior">Senior</option>
 </select>
 
-<input id="country" placeholder="Country (US, CL, CA)"/>
+<input id="country" placeholder="US / CL / CA"/>
 
-<button onclick="calc()">Calculate</button>
+<button onclick="calc()">Calcular</button>
 
 <div id="result" class="result"></div>
+
+<canvas id="chart"></canvas>
 
 </div>
 
 <script>
+
+let lang="es";
+let chart;
+
+function setLang(l){
+lang=l;
+}
+
+const FX = {
+  US: 1,
+  CL: 950,
+  CA: 1.35
+};
 
 async function calc(){
 
@@ -80,12 +110,7 @@ const job=document.getElementById("job").value.trim().toLowerCase();
 const level=document.getElementById("level").value;
 const country=document.getElementById("country").value.trim().toUpperCase();
 
-const result=document.getElementById("result");
-
-if(!job||!country){
-  result.innerText="fill fields";
-  return;
-}
+const resDiv=document.getElementById("result");
 
 try{
 
@@ -94,20 +119,44 @@ const url=`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&countr
 const res=await fetch(url);
 const data=await res.json();
 
-const min=data.min_usd*data.currency;
-const max=data.max_usd*data.currency;
+const fx = FX[country] || 1;
 
-result.innerText=
-`💰 Salary range\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`;
+const min = data.min_usd * fx;
+const max = data.max_usd * fx;
+const mid = (min + max)/2;
+
+resDiv.innerText =
+`${job} | ${level}\n\n${Math.round(min)} - ${Math.round(max)} ${country}`;
+
+draw(min, mid, max);
 
 }catch(e){
 console.log(e);
-result.innerText="error";
+resDiv.innerText="error";
 }
+
+}
+
+function draw(min, mid, max){
+
+if(chart) chart.destroy();
+
+const ctx=document.getElementById("chart");
+
+chart=new Chart(ctx,{
+type:"bar",
+data:{
+labels:["Min","Mid","Max"],
+datasets:[{
+data:[min,mid,max]
+}]
+}
+});
 
 }
 
 </script>
 
 </body>
+</html>
 </html>
