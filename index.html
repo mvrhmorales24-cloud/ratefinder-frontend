@@ -21,12 +21,11 @@
     padding: 30px;
     border-radius: 16px;
     width: 360px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   }
 
   h1 {
     font-size: 22px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
 
   .lang {
@@ -38,11 +37,11 @@
   .lang button {
     flex: 1;
     padding: 8px;
-    border-radius: 8px;
     border: none;
-    cursor: pointer;
+    border-radius: 8px;
     background: #334155;
     color: white;
+    cursor: pointer;
   }
 
   input, select {
@@ -74,14 +73,8 @@
     background: #0f172a;
     padding: 15px;
     border-radius: 10px;
-    font-size: 15px;
     min-height: 60px;
     white-space: pre-line;
-  }
-
-  .label {
-    font-size: 12px;
-    opacity: 0.7;
   }
 </style>
 </head>
@@ -97,16 +90,17 @@
 
   <h1 id="title">💰 RateFinder</h1>
 
-  <input id="job" placeholder="Job / Trabajo (dev, designer)" />
+  <input id="job" placeholder="Job / Trabajo" />
+
   <select id="level">
     <option value="junior">Junior</option>
     <option value="mid">Mid</option>
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country / País (CL, US, CA)" />
+  <input id="country" placeholder="Country / País" />
 
-  <button id="btn" onclick="calculate()">Calculate</button>
+  <button id="btn" onclick="calculate()">Calcular</button>
 
   <div id="result" class="result"></div>
 </div>
@@ -124,10 +118,10 @@ function setLang(l) {
     l === "es" ? "Calcular" : "Calculate";
 
   document.getElementById("job").placeholder =
-    l === "es" ? "Trabajo (dev, diseñador)" : "Job (dev, designer)";
+    l === "es" ? "Trabajo (dev, designer)" : "Job (dev, designer)";
 
   document.getElementById("country").placeholder =
-    l === "es" ? "País (CL, US, CA)" : "Country (CL, US, CA)";
+    l === "es" ? "País (CL, US)" : "Country (CL, US)";
 }
 
 async function calculate() {
@@ -140,8 +134,8 @@ async function calculate() {
 
   if (!job || !country) {
     result.innerText = lang === "es"
-      ? "⚠️ Completa job y país"
-      : "⚠️ Please fill job and country";
+      ? "⚠️ Completa todos los campos"
+      : "⚠️ Fill all fields";
     return;
   }
 
@@ -164,23 +158,20 @@ async function calculate() {
 
     const data = await response.json();
 
-    // 🔥 FIX IMPORTANTE: evitar 0 falsos
-    if (!data || !data.min || !data.max || data.min === 0 || data.max === 0) {
-      throw new Error("No data found for this query");
+    if (!data.min || !data.max) {
+      throw new Error("Invalid data");
     }
 
     result.innerText =
       lang === "es"
-        ? `💰 Rango estimado\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()} | ${data.job} | ${data.level}`
-        : `💰 Estimated salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()} | ${data.job} | ${data.level}`;
+        ? `💰 Rango salarial\n\n$${data.min} - $${data.max}\n\n📍 ${data.country}`
+        : `💰 Salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country}`;
 
   } catch (err) {
-    console.log(err);
-
     result.innerText =
       lang === "es"
-        ? "❌ No se encontraron datos o error del servidor"
-        : "❌ No data found or server error";
+        ? "❌ Error del servidor o sin datos"
+        : "❌ Server error or no data";
   }
 
   btn.disabled = false;
