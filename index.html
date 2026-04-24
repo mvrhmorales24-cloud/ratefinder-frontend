@@ -24,11 +24,16 @@ body{
   width:420px;
 }
 
+h2{
+  margin-top:0;
+}
+
 input,select{
   width:100%;
   padding:10px;
   margin:8px 0;
   border-radius:8px;
+  border:none;
 }
 
 button{
@@ -38,11 +43,13 @@ button{
   color:white;
   border:none;
   border-radius:8px;
+  cursor:pointer;
 }
 
 .lang{
   display:flex;
   gap:10px;
+  margin-bottom:10px;
 }
 
 .lang button{
@@ -53,6 +60,9 @@ button{
 .result{
   margin-top:15px;
   white-space:pre-line;
+  background:#0f172a;
+  padding:10px;
+  border-radius:10px;
 }
 
 canvas{
@@ -65,23 +75,25 @@ canvas{
 
 <div class="card">
 
+<!-- 🌐 idioma -->
 <div class="lang">
-<button onclick="setLang('es')">ES</button>
-<button onclick="setLang('en')">EN</button>
+  <button onclick="setLang('es')">ES</button>
+  <button onclick="setLang('en')">EN</button>
 </div>
 
-<h2>💰 RateFinder</h2>
+<h2 id="title">💰 RateFinder</h2>
 
-<input id="job" placeholder="job"/>
+<input id="job" placeholder="job (dev, designer, vet)"/>
+
 <select id="level">
 <option value="junior">Junior</option>
 <option value="mid">Mid</option>
 <option value="senior">Senior</option>
 </select>
 
-<input id="country" placeholder="US / CL / CA"/>
+<input id="country" placeholder="Country (US, CL, CA, EU)"/>
 
-<button onclick="calc()">Calcular</button>
+<button onclick="calc()" id="btn">Calcular</button>
 
 <div id="result" class="result"></div>
 
@@ -91,65 +103,95 @@ canvas{
 
 <script>
 
-let lang="es";
+let lang = "es";
 let chart;
 
+// 🌐 idioma
 function setLang(l){
-lang=l;
+  lang = l;
+
+  document.getElementById("btn").innerText =
+    l === "es" ? "Calcular" : "Calculate";
+
+  document.getElementById("job").placeholder =
+    l === "es"
+      ? "Trabajo (dev, designer, vet)"
+      : "Job (dev, designer, vet)";
+
+  document.getElementById("country").placeholder =
+    l === "es"
+      ? "País (US, CL, CA, EU)"
+      : "Country (US, CL, CA, EU)";
 }
 
-const FX = {
-  US: 1,
-  CL: 950,
-  CA: 1.35
-};
-
+// 🚀 calcular
 async function calc(){
 
-const job=document.getElementById("job").value.trim().toLowerCase();
-const level=document.getElementById("level").value;
-const country=document.getElementById("country").value.trim().toUpperCase();
+const job = document.getElementById("job").value.trim().toLowerCase();
+const level = document.getElementById("level").value;
+const country = document.getElementById("country").value.trim().toUpperCase();
 
-const resDiv=document.getElementById("result");
+const result = document.getElementById("result");
+
+if(!job || !country){
+  result.innerText =
+    lang === "es"
+      ? "Completa todos los campos"
+      : "Fill all fields";
+  return;
+}
 
 try{
 
-const url=`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&country=${country}`;
+const url =
+`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&country=${country}`;
 
-const res=await fetch(url);
-const data=await res.json();
+const res = await fetch(url);
+const data = await res.json();
 
-const fx = FX[country] || 1;
+// 💡 backend YA entrega datos por país
+const min = data.min;
+const max = data.max;
+const mid = (min + max) / 2;
 
-const min = data.min_usd * fx;
-const max = data.max_usd * fx;
-const mid = (min + max)/2;
+// 💰 texto
+result.innerText =
+lang === "es"
+? `💰 Rango salarial\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`
+: `💰 Salary range\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`;
 
-resDiv.innerText =
-`${job} | ${level}\n\n${Math.round(min)} - ${Math.round(max)} ${country}`;
-
+// 📊 gráfico
 draw(min, mid, max);
 
 }catch(e){
 console.log(e);
-resDiv.innerText="error";
+result.innerText =
+lang === "es"
+? "Error de servidor"
+: "Server error";
 }
 
 }
 
+// 📊 gráfico
 function draw(min, mid, max){
 
 if(chart) chart.destroy();
 
-const ctx=document.getElementById("chart");
+const ctx = document.getElementById("chart");
 
-chart=new Chart(ctx,{
-type:"bar",
-data:{
-labels:["Min","Mid","Max"],
-datasets:[{
-data:[min,mid,max]
+chart = new Chart(ctx, {
+type: "bar",
+data: {
+labels: ["Min", "Mid", "Max"],
+datasets: [{
+data: [min, mid, max]
 }]
+},
+options: {
+plugins: {
+legend: { display: false }
+}
 }
 });
 
@@ -158,5 +200,4 @@ data:[min,mid,max]
 </script>
 
 </body>
-</html>
 </html>
