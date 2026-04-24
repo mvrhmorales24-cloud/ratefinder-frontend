@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>RateFinder</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
   body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background: #0f172a;
     color: white;
     display: flex;
@@ -22,7 +20,13 @@
     background: #1e293b;
     padding: 30px;
     border-radius: 16px;
-    width: 380px;
+    width: 350px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font-size: 24px;
   }
 
   input, select {
@@ -31,6 +35,7 @@
     margin: 8px 0;
     border-radius: 8px;
     border: none;
+    outline: none;
   }
 
   button {
@@ -41,7 +46,12 @@
     border-radius: 8px;
     background: #3b82f6;
     color: white;
+    font-size: 16px;
     cursor: pointer;
+  }
+
+  button:disabled {
+    background: #64748b;
   }
 
   .result {
@@ -49,10 +59,15 @@
     background: #0f172a;
     padding: 15px;
     border-radius: 10px;
+    font-size: 16px;
+    white-space: pre-line;
+    min-height: 60px;
   }
 
-  canvas {
-    margin-top: 15px;
+  .label {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 5px;
   }
 </style>
 </head>
@@ -63,6 +78,7 @@
   <h1>💰 RateFinder</h1>
 
   <input id="job" placeholder="Job (dev, designer, vet)" />
+  <div class="label">Try: dev, designer, UX</div>
 
   <select id="level">
     <option value="junior">Junior</option>
@@ -70,13 +86,12 @@
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country (CL, US, CA, UK)" />
+  <input id="country" placeholder="Country (CL, US, CA)" />
+  <div class="label">Try: CL, US, CA</div>
 
   <button id="calculateBtn" onclick="calculate()">Calculate</button>
 
   <div id="result" class="result"></div>
-
-  <canvas id="salaryChart"></canvas>
 </div>
 
 <script>
@@ -84,55 +99,55 @@ async function calculate() {
   const btn = document.getElementById("calculateBtn");
   const result = document.getElementById("result");
 
-  const job = document.getElementById("job").value;
+  const job = document.getElementById("job").value.trim();
   const level = document.getElementById("level").value;
-  const country = document.getElementById("country").value;
+  const country = document.getElementById("country").value.trim();
+
+  if (!job || !country) {
+    result.innerText = "⚠️ Please fill job and country";
+    return;
+  }
 
   btn.disabled = true;
   btn.innerText = "Calculating...";
   result.innerText = "Loading...";
 
   try {
-    const response = await fetch(
-      "https://ratefinder.onrender.com/rate?job=" +
-      job + "&level=" + level + "&country=" + country
-    );
+    const url =
+      "https://ratefinder.onrender.com/rate" +
+      "?job=" + encodeURIComponent(job) +
+      "&level=" + encodeURIComponent(level) +
+      "&country=" + encodeURIComponent(country);
+
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error("Backend error: " + response.status);
+    }
 
     const data = await response.json();
 
-    result.innerHTML = `
-      <div style="font-size:18px;">💰 Salary</div>
-      <div style="font-size:24px; font-weight:bold;">
-        ${data.currency} ${data.min} - ${data.max}
-      </div>
-      <div style="opacity:0.7; margin-top:5px;">
-        ${data.country} | ${data.job} | ${data.level}
-      </div>
-    `;
+    if (!data || data.min === undefined || data.max === undefined) {
+      throw new Error("Invalid backend response");
+    }
 
-    drawChart(data.min, data.max);
+    result.innerText =
+      "💰 Estimated Salary Range\n\n" +
+      "$" + data.min + " - $" + data.max + "\n\n" +
+      "📍 " + (data.country || "").toUpperCase() +
+      " | " + data.job +
+      " | " + data.level;
 
   } catch (err) {
-    result.innerText = "Error connecting to backend";
+    console.log(err);
+    result.innerText = "Error connecting to backend: " + err.message;
   }
 
   btn.disabled = false;
   btn.innerText = "Calculate";
-}
-
-function drawChart(min, max) {
-  const ctx = document.getElementById("salaryChart");
-
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ["Min", "Max"],
-      datasets: [{
-        label: "Salary",
-        data: [min, max]
-      }]
-    }
-  });
 }
 </script>
 
