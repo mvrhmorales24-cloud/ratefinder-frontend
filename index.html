@@ -9,14 +9,13 @@
 
 <style>
   body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #0f172a;
     color: white;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    margin: 0;
   }
 
   .card {
@@ -24,17 +23,6 @@
     padding: 30px;
     border-radius: 16px;
     width: 380px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-  }
-
-  h1 {
-    margin-bottom: 5px;
-  }
-
-  p {
-    opacity: 0.7;
-    margin-top: 0;
-    margin-bottom: 20px;
   }
 
   input, select {
@@ -53,12 +41,7 @@
     border-radius: 8px;
     background: #3b82f6;
     color: white;
-    font-size: 16px;
     cursor: pointer;
-  }
-
-  button:disabled {
-    background: #64748b;
   }
 
   .result {
@@ -66,16 +49,10 @@
     background: #0f172a;
     padding: 15px;
     border-radius: 10px;
-    transition: all 0.3s ease;
   }
 
   canvas {
     margin-top: 15px;
-  }
-
-  .label {
-    font-size: 12px;
-    opacity: 0.7;
   }
 </style>
 </head>
@@ -84,10 +61,8 @@
 
 <div class="card">
   <h1>💰 RateFinder</h1>
-  <p>Career Salary Intelligence Tool</p>
 
   <input id="job" placeholder="Job (dev, designer, vet)" />
-  <div class="label">Try: dev, developer, UX</div>
 
   <select id="level">
     <option value="junior">Junior</option>
@@ -115,10 +90,7 @@ async function calculate() {
 
   btn.disabled = true;
   btn.innerText = "Calculating...";
-
-  result.innerHTML = `
-    <div style="opacity:0.7">🔄 Calculating salary range...</div>
-  `;
+  result.innerText = "Loading...";
 
   try {
     const response = await fetch(
@@ -128,20 +100,17 @@ async function calculate() {
 
     const data = await response.json();
 
-    setTimeout(() => {
-      result.innerHTML = `
-        <div style="font-size:18px;">💰 Estimated Salary</div>
-        <div style="font-size:24px; font-weight:bold; margin-top:5px;">
-          $${data.min} - $${data.max}
-        </div>
-        <div style="margin-top:8px; opacity:0.7">
-          📍 ${data.country} | ${data.job} | ${data.level}
-        </div>
-      `;
+    result.innerHTML = `
+      <div style="font-size:18px;">💰 Salary</div>
+      <div style="font-size:24px; font-weight:bold;">
+        ${data.currency} ${data.min} - ${data.max}
+      </div>
+      <div style="opacity:0.7; margin-top:5px;">
+        ${data.country} | ${data.job} | ${data.level}
+      </div>
+    `;
 
-      drawChart(data.min, data.max);
-
-    }, 200);
+    drawChart(data.min, data.max);
 
   } catch (err) {
     result.innerText = "Error connecting to backend";
@@ -159,17 +128,9 @@ function drawChart(min, max) {
     data: {
       labels: ["Min", "Max"],
       datasets: [{
-        label: "Salary Range",
+        label: "Salary",
         data: [min, max]
       }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          display: false
-        }
-      }
     }
   });
 }
