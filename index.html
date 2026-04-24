@@ -7,7 +7,7 @@
 
 <style>
   body {
-    font-family: Arial, sans-serif;
+    font-family: Arial;
     background: #0f172a;
     color: white;
     display: flex;
@@ -84,7 +84,12 @@
 
 <div class="card">
 
-  <h1>💰 RateFinder</h1>
+  <div class="lang">
+    <button onclick="setLang('es')">ES</button>
+    <button onclick="setLang('en')">EN</button>
+  </div>
+
+  <h1 id="title">💰 RateFinder</h1>
 
   <input id="job" placeholder="Job (dev, designer, vet)" />
 
@@ -96,69 +101,89 @@
 
   <input id="country" placeholder="Country (CL, US, CA)" />
 
-  <button id="btn" onclick="calculate()">Calculate</button>
+  <button id="btn" onclick="calculate()">Calcular</button>
 
   <div id="result" class="result"></div>
 </div>
 
 <script>
 
+let lang = "es";
+
+function setLang(l) {
+  lang = l;
+
+  document.getElementById("title").innerText = "💰 RateFinder";
+
+  document.getElementById("btn").innerText =
+    l === "es" ? "Calcular" : "Calculate";
+
+  document.getElementById("job").placeholder =
+    l === "es"
+      ? "Trabajo (dev, diseñador, vet)"
+      : "Job (dev, designer, vet)";
+
+  document.getElementById("country").placeholder =
+    l === "es"
+      ? "País (CL, US, CA)"
+      : "Country (CL, US, CA)";
+}
+
 async function calculate() {
+
   const btn = document.getElementById("btn");
   const result = document.getElementById("result");
 
   const job = document.getElementById("job").value.trim().toLowerCase();
   const level = document.getElementById("level").value;
-  const country = document.getElementById("country").value.trim();
+  const country = document.getElementById("country").value.trim().toUpperCase();
 
   if (!job || !country) {
-    result.innerText = "⚠️ Fill all fields";
+    result.innerText =
+      lang === "es"
+        ? "⚠️ Completa todos los campos"
+        : "⚠️ Fill all fields";
     return;
   }
 
   btn.disabled = true;
-  btn.innerText = "Calculating...";
+  btn.innerText = lang === "es" ? "Calculando..." : "Calculating...";
   result.innerText = "Loading...";
 
   try {
+
     const url =
       "https://ratefinder.onrender.com/rate" +
       "?job=" + encodeURIComponent(job) +
       "&level=" + encodeURIComponent(level) +
       "&country=" + encodeURIComponent(country);
 
-    const response = await fetch(url, { cache: "no-store" });
-
-    if (!response.ok) {
-      throw new Error("Server error " + response.status);
-    }
-
+    const response = await fetch(url);
     const data = await response.json();
 
-    // ✔ VALIDACIÓN FINAL SEGURA
-    if (
-      data.min === undefined ||
-      data.max === undefined ||
-      isNaN(Number(data.min)) ||
-      isNaN(Number(data.max))
-    ) {
-      throw new Error("Invalid backend response");
+    if (!data.min_usd || !data.max_usd) {
+      throw new Error("Invalid data");
     }
 
+    const convertedMin = data.min_usd * (data.currency || 1);
+    const convertedMax = data.max_usd * (data.currency || 1);
+
     result.innerText =
-      "💰 Salary range\n\n" +
-      "$" + data.min + " - $" + data.max + "\n\n" +
-      "📍 " + data.country.toUpperCase() +
-      " | " + data.job +
-      " | " + data.level;
+      lang === "es"
+        ? `💰 Rango salarial\n\n${Math.round(convertedMin)} - ${Math.round(convertedMax)} ${country}\n\n📍 ${job} | ${level}`
+        : `💰 Salary range\n\n${Math.round(convertedMin)} - ${Math.round(convertedMax)} ${country}\n\n📍 ${job} | ${level}`;
 
   } catch (err) {
     console.log(err);
-    result.innerText = "❌ Server error or no data";
+
+    result.innerText =
+      lang === "es"
+        ? "❌ Error al obtener datos"
+        : "❌ Data error";
   }
 
   btn.disabled = false;
-  btn.innerText = "Calculate";
+  btn.innerText = lang === "es" ? "Calcular" : "Calculate";
 }
 
 </script>
