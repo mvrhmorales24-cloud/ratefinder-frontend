@@ -24,10 +24,6 @@ body{
   width:420px;
 }
 
-h2{
-  margin-top:0;
-}
-
 input,select{
   width:100%;
   padding:10px;
@@ -43,6 +39,17 @@ button{
   color:white;
   border:none;
   border-radius:8px;
+}
+
+.lang{
+  display:flex;
+  gap:10px;
+  margin-bottom:10px;
+}
+
+.lang button{
+  flex:1;
+  background:#334155;
 }
 
 .result{
@@ -63,6 +70,11 @@ canvas{
 
 <div class="card">
 
+<div class="lang">
+<button onclick="setLang('es')">ES</button>
+<button onclick="setLang('en')">EN</button>
+</div>
+
 <h2>💰 RateFinder</h2>
 
 <input id="job" placeholder="job (dev, vet, designer)"/>
@@ -75,6 +87,13 @@ canvas{
 
 <input id="country" placeholder="US, CA, CL, EU"/>
 
+<select id="currency">
+<option value="USD">USD</option>
+<option value="CLP">CLP</option>
+<option value="CAD">CAD</option>
+<option value="EUR">EUR</option>
+</select>
+
 <button onclick="calc()">Calcular</button>
 
 <div id="result" class="result"></div>
@@ -86,17 +105,25 @@ canvas{
 <script>
 
 let chart;
+let lang = "es";
+
+function setLang(l){
+  lang = l;
+}
 
 async function calc(){
 
 const job=document.getElementById("job").value.trim().toLowerCase();
 const level=document.getElementById("level").value;
 const country=document.getElementById("country").value.trim().toUpperCase();
+const currency=document.getElementById("currency").value;
 
 const result=document.getElementById("result");
 
 if(!job || !country){
-  result.innerText="Completa todos los campos";
+  result.innerText = lang==="es"
+    ? "Completa todos los campos"
+    : "Fill all fields";
   return;
 }
 
@@ -107,18 +134,35 @@ const url=`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&countr
 const res=await fetch(url);
 const data=await res.json();
 
-const min=data.min;
-const max=data.max;
+const min=data.min_usd;
+const max=data.max_usd;
 const mid=(min+max)/2;
 
-result.innerText =
-`${job} | ${level} | ${country}\n\n💰 ${min} - ${max} USD`;
+// 💱 conversión simple visual
+const fx = data.fx[currency];
 
-draw(min, mid, max);
+const minConv = Math.round(min * fx);
+const maxConv = Math.round(max * fx);
+const midConv = Math.round(mid * fx);
+
+if(lang==="es"){
+  result.innerText =
+`${job} | ${level} | ${country}
+
+💰 ${minConv} - ${maxConv} ${currency}`;
+}else{
+  result.innerText =
+`${job} | ${level} | ${country}
+
+💰 ${minConv} - ${maxConv} ${currency}`;
+}
+
+draw(minConv, midConv, maxConv);
 
 }catch(e){
 console.log(e);
-result.innerText="Error de servidor";
+result.innerText =
+lang==="es" ? "Error de servidor" : "Server error";
 }
 
 }
