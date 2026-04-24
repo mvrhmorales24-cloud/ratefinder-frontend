@@ -121,7 +121,7 @@ function setLang(l) {
     l === "es" ? "Trabajo (dev, designer)" : "Job (dev, designer)";
 
   document.getElementById("country").placeholder =
-    l === "es" ? "País (CL, US)" : "Country (CL, US)";
+    l === "es" ? "País (CL, US, CA)" : "Country (CL, US, CA)";
 }
 
 async function calculate() {
@@ -133,9 +133,10 @@ async function calculate() {
   const country = document.getElementById("country").value.trim();
 
   if (!job || !country) {
-    result.innerText = lang === "es"
-      ? "⚠️ Completa todos los campos"
-      : "⚠️ Fill all fields";
+    result.innerText =
+      lang === "es"
+        ? "⚠️ Completa todos los campos"
+        : "⚠️ Fill all fields";
     return;
   }
 
@@ -158,16 +159,24 @@ async function calculate() {
 
     const data = await response.json();
 
-    if (!data.min || !data.max) {
-      throw new Error("Invalid data");
+    // ✔ validación segura (FIX REAL)
+    if (
+      data.min === undefined ||
+      data.max === undefined ||
+      isNaN(data.min) ||
+      isNaN(data.max)
+    ) {
+      throw new Error("Invalid backend data");
     }
 
     result.innerText =
       lang === "es"
-        ? `💰 Rango salarial\n\n$${data.min} - $${data.max}\n\n📍 ${data.country}`
-        : `💰 Salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country}`;
+        ? `💰 Rango salarial\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()}`
+        : `💰 Salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()}`;
 
   } catch (err) {
+    console.log(err);
+
     result.innerText =
       lang === "es"
         ? "❌ Error del servidor o sin datos"
