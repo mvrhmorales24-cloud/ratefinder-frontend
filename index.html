@@ -103,7 +103,10 @@ async function calculate() {
 
   btn.disabled = true;
   btn.innerText = "Calculating...";
-  result.innerText = "Loading...";
+  
+  result.innerHTML = `
+  <div style="opacity:0.7">🔄 Calculating salary range...</div>
+  `;
 
   try {
     const response = await fetch(
@@ -113,12 +116,20 @@ async function calculate() {
 
     const data = await response.json();
 
-    result.innerText =
-      "💰 Estimated Salary Range\n\n" +
-      "$" + data.min + " - $" + data.max + "\n\n" +
-      "📍 " + data.country.toUpperCase() +
-      " | " + data.job +
-      " | " + data.level;
+    // animación simple de aparición
+    result.style.opacity = 0;
+    setTimeout(() => {
+      result.innerHTML = `
+        <div style="font-size:18px; margin-bottom:10px;">💰 Estimated Salary</div>
+        <div style="font-size:22px; font-weight:bold;">
+          $${data.min} - $${data.max}
+        </div>
+        <div style="margin-top:10px; opacity:0.7">
+          📍 ${data.country} | ${data.job} | ${data.level}
+        </div>
+      `;
+      result.style.opacity = 1;
+    }, 200);
 
   } catch (err) {
     result.innerText = "Error connecting to backend";
@@ -128,6 +139,3 @@ async function calculate() {
   btn.innerText = "Calculate";
 }
 </script>
-
-</body>
-</html>
