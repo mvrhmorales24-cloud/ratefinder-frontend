@@ -1,82 +1,52 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>RateFinder</title>
 
 <style>
-  body {
-    font-family: Arial;
-    background: #0f172a;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
+body{
+  font-family: Arial;
+  background:#0f172a;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
 
-  .card {
-    background: #1e293b;
-    padding: 30px;
-    border-radius: 16px;
-    width: 360px;
-  }
+.card{
+  background:#1e293b;
+  padding:30px;
+  border-radius:16px;
+  width:360px;
+}
 
-  h1 {
-    font-size: 22px;
-    margin-bottom: 10px;
-  }
+input,select{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  border-radius:8px;
+  border:none;
+}
 
-  .lang {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
+button{
+  width:100%;
+  padding:12px;
+  background:#3b82f6;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
 
-  .lang button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    background: #334155;
-    color: white;
-    cursor: pointer;
-  }
-
-  input, select {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
-    border-radius: 8px;
-    border: none;
-    outline: none;
-  }
-
-  button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 8px;
-    background: #3b82f6;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-  }
-
-  button:disabled {
-    background: #64748b;
-  }
-
-  .result {
-    margin-top: 20px;
-    background: #0f172a;
-    padding: 15px;
-    border-radius: 10px;
-    min-height: 60px;
-    white-space: pre-line;
-  }
+.result{
+  margin-top:20px;
+  background:#0f172a;
+  padding:15px;
+  border-radius:10px;
+}
 </style>
 </head>
 
@@ -84,106 +54,57 @@
 
 <div class="card">
 
-  <div class="lang">
-    <button onclick="setLang('es')">ES</button>
-    <button onclick="setLang('en')">EN</button>
-  </div>
+<h1>💰 RateFinder</h1>
 
-  <h1 id="title">💰 RateFinder</h1>
+<input id="job" placeholder="job (dev, designer, vet)"/>
 
-  <input id="job" placeholder="Job (dev, designer, vet)" />
+<select id="level">
+<option value="junior">Junior</option>
+<option value="mid">Mid</option>
+<option value="senior">Senior</option>
+</select>
 
-  <select id="level">
-    <option value="junior">Junior</option>
-    <option value="mid">Mid</option>
-    <option value="senior">Senior</option>
-  </select>
+<input id="country" placeholder="Country (US, CL, CA)"/>
 
-  <input id="country" placeholder="Country (CL, US, CA)" />
+<button onclick="calc()">Calculate</button>
 
-  <button id="btn" onclick="calculate()">Calcular</button>
+<div id="result" class="result"></div>
 
-  <div id="result" class="result"></div>
 </div>
 
 <script>
 
-let lang = "es";
+async function calc(){
 
-function setLang(l) {
-  lang = l;
+const job=document.getElementById("job").value.trim().toLowerCase();
+const level=document.getElementById("level").value;
+const country=document.getElementById("country").value.trim().toUpperCase();
 
-  document.getElementById("title").innerText = "💰 RateFinder";
+const result=document.getElementById("result");
 
-  document.getElementById("btn").innerText =
-    l === "es" ? "Calcular" : "Calculate";
-
-  document.getElementById("job").placeholder =
-    l === "es"
-      ? "Trabajo (dev, diseñador, vet)"
-      : "Job (dev, designer, vet)";
-
-  document.getElementById("country").placeholder =
-    l === "es"
-      ? "País (CL, US, CA)"
-      : "Country (CL, US, CA)";
+if(!job||!country){
+  result.innerText="fill fields";
+  return;
 }
 
-async function calculate() {
+try{
 
-  const btn = document.getElementById("btn");
-  const result = document.getElementById("result");
+const url=`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&country=${country}`;
 
-  const job = document.getElementById("job").value.trim().toLowerCase();
-  const level = document.getElementById("level").value;
-  const country = document.getElementById("country").value.trim().toUpperCase();
+const res=await fetch(url);
+const data=await res.json();
 
-  if (!job || !country) {
-    result.innerText =
-      lang === "es"
-        ? "⚠️ Completa todos los campos"
-        : "⚠️ Fill all fields";
-    return;
-  }
+const min=data.min_usd*data.currency;
+const max=data.max_usd*data.currency;
 
-  btn.disabled = true;
-  btn.innerText = lang === "es" ? "Calculando..." : "Calculating...";
-  result.innerText = "Loading...";
+result.innerText=
+`💰 Salary range\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`;
 
-  try {
+}catch(e){
+console.log(e);
+result.innerText="error";
+}
 
-    const url =
-      "https://ratefinder.onrender.com/rate" +
-      "?job=" + encodeURIComponent(job) +
-      "&level=" + encodeURIComponent(level) +
-      "&country=" + encodeURIComponent(country);
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!data.min_usd || !data.max_usd) {
-      throw new Error("Invalid data");
-    }
-
-    const convertedMin = data.min_usd * (data.currency || 1);
-    const convertedMax = data.max_usd * (data.currency || 1);
-
-    result.innerText =
-      lang === "es"
-        ? `💰 Rango salarial\n\n${Math.round(convertedMin)} - ${Math.round(convertedMax)} ${country}\n\n📍 ${job} | ${level}`
-        : `💰 Salary range\n\n${Math.round(convertedMin)} - ${Math.round(convertedMax)} ${country}\n\n📍 ${job} | ${level}`;
-
-  } catch (err) {
-    console.log(err);
-
-    result.innerText =
-      lang === "es"
-        ? "❌ Error al obtener datos"
-        : "❌ Data error";
-  }
-
-  btn.disabled = false;
-  btn.innerText = lang === "es" ? "Calcular" : "Calculate";
 }
 
 </script>
