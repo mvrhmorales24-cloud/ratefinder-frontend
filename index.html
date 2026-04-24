@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>RateFinder</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -14,19 +16,25 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    margin: 0;
   }
 
   .card {
     background: #1e293b;
     padding: 30px;
     border-radius: 16px;
-    width: 350px;
+    width: 380px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   }
 
   h1 {
+    margin-bottom: 5px;
+  }
+
+  p {
+    opacity: 0.7;
+    margin-top: 0;
     margin-bottom: 20px;
-    font-size: 24px;
   }
 
   input, select {
@@ -58,14 +66,16 @@
     background: #0f172a;
     padding: 15px;
     border-radius: 10px;
-    font-size: 16px;
-    white-space: pre-line;
+    transition: all 0.3s ease;
+  }
+
+  canvas {
+    margin-top: 15px;
   }
 
   .label {
     font-size: 12px;
     opacity: 0.7;
-    margin-top: 5px;
   }
 </style>
 </head>
@@ -74,6 +84,7 @@
 
 <div class="card">
   <h1>💰 RateFinder</h1>
+  <p>Career Salary Intelligence Tool</p>
 
   <input id="job" placeholder="Job (dev, designer, vet)" />
   <div class="label">Try: dev, developer, UX</div>
@@ -84,12 +95,13 @@
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country (CL, US)" />
-  <div class="label">Try: CL, US</div>
+  <input id="country" placeholder="Country (CL, US, CA, UK)" />
 
   <button id="calculateBtn" onclick="calculate()">Calculate</button>
 
   <div id="result" class="result"></div>
+
+  <canvas id="salaryChart"></canvas>
 </div>
 
 <script>
@@ -103,9 +115,9 @@ async function calculate() {
 
   btn.disabled = true;
   btn.innerText = "Calculating...";
-  
+
   result.innerHTML = `
-  <div style="opacity:0.7">🔄 Calculating salary range...</div>
+    <div style="opacity:0.7">🔄 Calculating salary range...</div>
   `;
 
   try {
@@ -116,19 +128,19 @@ async function calculate() {
 
     const data = await response.json();
 
-    // animación simple de aparición
-    result.style.opacity = 0;
     setTimeout(() => {
       result.innerHTML = `
-        <div style="font-size:18px; margin-bottom:10px;">💰 Estimated Salary</div>
-        <div style="font-size:22px; font-weight:bold;">
+        <div style="font-size:18px;">💰 Estimated Salary</div>
+        <div style="font-size:24px; font-weight:bold; margin-top:5px;">
           $${data.min} - $${data.max}
         </div>
-        <div style="margin-top:10px; opacity:0.7">
+        <div style="margin-top:8px; opacity:0.7">
           📍 ${data.country} | ${data.job} | ${data.level}
         </div>
       `;
-      result.style.opacity = 1;
+
+      drawChart(data.min, data.max);
+
     }, 200);
 
   } catch (err) {
@@ -138,4 +150,30 @@ async function calculate() {
   btn.disabled = false;
   btn.innerText = "Calculate";
 }
+
+function drawChart(min, max) {
+  const ctx = document.getElementById("salaryChart");
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ["Min", "Max"],
+      datasets: [{
+        label: "Salary Range",
+        data: [min, max]
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+}
 </script>
+
+</body>
+</html>
