@@ -43,26 +43,14 @@ button{
   color:white;
   border:none;
   border-radius:8px;
-  cursor:pointer;
-}
-
-.lang{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-}
-
-.lang button{
-  flex:1;
-  background:#334155;
 }
 
 .result{
   margin-top:15px;
-  white-space:pre-line;
   background:#0f172a;
   padding:10px;
   border-radius:10px;
+  white-space:pre-line;
 }
 
 canvas{
@@ -75,15 +63,9 @@ canvas{
 
 <div class="card">
 
-<!-- 🌐 idioma -->
-<div class="lang">
-  <button onclick="setLang('es')">ES</button>
-  <button onclick="setLang('en')">EN</button>
-</div>
+<h2>💰 RateFinder</h2>
 
-<h2 id="title">💰 RateFinder</h2>
-
-<input id="job" placeholder="job (dev, designer, vet)"/>
+<input id="job" placeholder="job (dev, vet, designer)"/>
 
 <select id="level">
 <option value="junior">Junior</option>
@@ -91,9 +73,9 @@ canvas{
 <option value="senior">Senior</option>
 </select>
 
-<input id="country" placeholder="Country (US, CL, CA, EU)"/>
+<input id="country" placeholder="US, CA, CL, EU"/>
 
-<button onclick="calc()" id="btn">Calcular</button>
+<button onclick="calc()">Calcular</button>
 
 <div id="result" class="result"></div>
 
@@ -103,95 +85,60 @@ canvas{
 
 <script>
 
-let lang = "es";
 let chart;
 
-// 🌐 idioma
-function setLang(l){
-  lang = l;
-
-  document.getElementById("btn").innerText =
-    l === "es" ? "Calcular" : "Calculate";
-
-  document.getElementById("job").placeholder =
-    l === "es"
-      ? "Trabajo (dev, designer, vet)"
-      : "Job (dev, designer, vet)";
-
-  document.getElementById("country").placeholder =
-    l === "es"
-      ? "País (US, CL, CA, EU)"
-      : "Country (US, CL, CA, EU)";
-}
-
-// 🚀 calcular
 async function calc(){
 
-const job = document.getElementById("job").value.trim().toLowerCase();
-const level = document.getElementById("level").value;
-const country = document.getElementById("country").value.trim().toUpperCase();
+const job=document.getElementById("job").value.trim().toLowerCase();
+const level=document.getElementById("level").value;
+const country=document.getElementById("country").value.trim().toUpperCase();
 
-const result = document.getElementById("result");
+const result=document.getElementById("result");
 
 if(!job || !country){
-  result.innerText =
-    lang === "es"
-      ? "Completa todos los campos"
-      : "Fill all fields";
+  result.innerText="Completa todos los campos";
   return;
 }
 
 try{
 
-const url =
-`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&country=${country}`;
+const url=`https://ratefinder.onrender.com/rate?job=${job}&level=${level}&country=${country}`;
 
-const res = await fetch(url);
-const data = await res.json();
+const res=await fetch(url);
+const data=await res.json();
 
-// 💡 backend YA entrega datos por país
-const min = data.min;
-const max = data.max;
-const mid = (min + max) / 2;
+const min=data.min;
+const max=data.max;
+const mid=(min+max)/2;
 
-// 💰 texto
 result.innerText =
-lang === "es"
-? `💰 Rango salarial\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`
-: `💰 Salary range\n\n${Math.round(min)} - ${Math.round(max)} ${country}\n\n${job} | ${level}`;
+`${job} | ${level} | ${country}\n\n💰 ${min} - ${max} USD`;
 
-// 📊 gráfico
 draw(min, mid, max);
 
 }catch(e){
 console.log(e);
-result.innerText =
-lang === "es"
-? "Error de servidor"
-: "Server error";
+result.innerText="Error de servidor";
 }
 
 }
 
-// 📊 gráfico
 function draw(min, mid, max){
 
 if(chart) chart.destroy();
 
-const ctx = document.getElementById("chart");
+const ctx=document.getElementById("chart");
 
-chart = new Chart(ctx, {
-type: "bar",
-data: {
-labels: ["Min", "Mid", "Max"],
-datasets: [{
-data: [min, mid, max]
+chart=new Chart(ctx,{
+type:"bar",
+data:{
+labels:["Min","Mid","Max"],
+datasets:[{
+data:[min, mid, max]
 }]
 },
-options: {
-plugins: {
-legend: { display: false }
-}
+options:{
+plugins:{legend:{display:false}}
 }
 });
 
