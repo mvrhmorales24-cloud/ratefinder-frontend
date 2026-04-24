@@ -1,52 +1,97 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>RateFinder</title>
   <style>
-    body { font-family: Arial; max-width: 500px; margin: 50px auto; }
-    select, button { padding: 10px; margin: 5px 0; width: 100%; }
-    #result { margin-top: 20px; font-size: 20px; font-weight: bold; }
+    body {
+      font-family: Arial;
+      padding: 40px;
+    }
+
+    input, select, button {
+      display: block;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      white-space: pre-line;
+    }
   </style>
 </head>
+
 <body>
 
-<h1>💰 RateFinder</h1>
+  <h1>RateFinder</h1>
 
-<select id="job">
-  <option value="design">Design</option>
-  <option value="software">Software</option>
-  <option value="marketing">Marketing</option>
-</select>
+  <input id="job" placeholder="Job (design, developer, vet)" />
 
-<select id="level">
-  <option value="junior">Junior</option>
-  <option value="mid">Mid</option>
-  <option value="senior">Senior</option>
-</select>
+  <select id="level">
+    <option value="junior">Junior</option>
+    <option value="mid">Mid</option>
+    <option value="senior">Senior</option>
+  </select>
 
-<select id="country">
-  <option value="CL">Chile</option>
-  <option value="US">USA</option>
-</select>
+  <input id="country" placeholder="Country (CL, US)" />
 
-<button onclick="getRate()">Calculate</button>
+  <button id="calculateBtn" onclick="calculate()">
+    Calculate
+  </button>
 
-<div id="result"></div>
+  <div id="result"></div>
 
-<script>
-async function getRate() {
-  const job = document.getElementById("job").value;
-  const level = document.getElementById("level").value;
-  const country = document.getElementById("country").value;
+  <script>
+    async function calculate() {
+      const btn = document.getElementById("calculateBtn");
+      const result = document.getElementById("result");
 
-  const res = await fetch("https://ratefinder.onrender.com/rate?job=" + job + "&level=" + level + "&country=" + country);
-  const data = await res.json();
+      const job = document.getElementById("job").value;
+      const level = document.getElementById("level").value;
+      const country = document.getElementById("country").value;
 
+      // UI loading
+      btn.disabled = true;
+      btn.innerText = "Calculating...";
+      result.innerText = "Calculating...";
 
-document.getElementById("result").innerText =
-  "💰 You should charge: " + data.range;
-}
-</script>
+      try {
+        const response = await fetch(
+          "https://ratefinder.onrender.com/rate?job=" +
+          job +
+          "&level=" +
+          level +
+          "&country=" +
+          country
+        );
+
+        const data = await response.json();
+
+        // FIX IMPORTANTE: usar min y max (NO price)
+        result.innerText =
+          "You should charge:\n$" +
+          data.min +
+          " - $" +
+          data.max;
+
+      } catch (error) {
+        result.innerText =
+          "Error connecting to backend. Try again.";
+
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "Calculate";
+      }
+    }
+  </script>
 
 </body>
 </html>
