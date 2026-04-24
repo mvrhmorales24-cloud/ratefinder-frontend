@@ -84,14 +84,9 @@
 
 <div class="card">
 
-  <div class="lang">
-    <button onclick="setLang('es')">ES</button>
-    <button onclick="setLang('en')">EN</button>
-  </div>
+  <h1>💰 RateFinder</h1>
 
-  <h1 id="title">💰 RateFinder</h1>
-
-  <input id="job" placeholder="Job / Trabajo (dev, designer, vet)" />
+  <input id="job" placeholder="Job (dev, designer, vet)" />
 
   <select id="level">
     <option value="junior">Junior</option>
@@ -99,54 +94,30 @@
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country / País (CL, US, CA)" />
+  <input id="country" placeholder="Country (CL, US, CA)" />
 
-  <button id="btn" onclick="calculate()">Calcular</button>
+  <button id="btn" onclick="calculate()">Calculate</button>
 
   <div id="result" class="result"></div>
 </div>
 
 <script>
-let lang = "es";
-
-function setLang(l) {
-  lang = l;
-
-  document.getElementById("title").innerText =
-    l === "es" ? "💰 RateFinder" : "💰 RateFinder";
-
-  document.getElementById("btn").innerText =
-    l === "es" ? "Calcular" : "Calculate";
-
-  document.getElementById("job").placeholder =
-    l === "es"
-      ? "Trabajo (dev, diseñador, vet)"
-      : "Job (dev, designer, vet)";
-
-  document.getElementById("country").placeholder =
-    l === "es"
-      ? "País (CL, US, CA)"
-      : "Country (CL, US, CA)";
-}
 
 async function calculate() {
   const btn = document.getElementById("btn");
   const result = document.getElementById("result");
 
-  const job = document.getElementById("job").value.trim();
+  const job = document.getElementById("job").value.trim().toLowerCase();
   const level = document.getElementById("level").value;
   const country = document.getElementById("country").value.trim();
 
   if (!job || !country) {
-    result.innerText =
-      lang === "es"
-        ? "⚠️ Completa todos los campos"
-        : "⚠️ Fill all fields";
+    result.innerText = "⚠️ Fill all fields";
     return;
   }
 
   btn.disabled = true;
-  btn.innerText = lang === "es" ? "Calculando..." : "Calculating...";
+  btn.innerText = "Calculating...";
   result.innerText = "Loading...";
 
   try {
@@ -164,37 +135,33 @@ async function calculate() {
 
     const data = await response.json();
 
-    // ✅ VALIDACIÓN CORRECTA (FIX FINAL)
+    // ✔ VALIDACIÓN FINAL SEGURA
     if (
       data.min === undefined ||
       data.max === undefined ||
-      data.min === null ||
-      data.max === null ||
       isNaN(Number(data.min)) ||
       isNaN(Number(data.max))
     ) {
-      throw new Error("Invalid backend data");
+      throw new Error("Invalid backend response");
     }
 
     result.innerText =
-      lang === "es"
-        ? `💰 Rango salarial\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()}`
-        : `💰 Salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()}`;
+      "💰 Salary range\n\n" +
+      "$" + data.min + " - $" + data.max + "\n\n" +
+      "📍 " + data.country.toUpperCase() +
+      " | " + data.job +
+      " | " + data.level;
 
   } catch (err) {
     console.log(err);
-
-    result.innerText =
-      lang === "es"
-        ? "❌ Error del servidor o sin datos"
-        : "❌ Server error or no data";
+    result.innerText = "❌ Server error or no data";
   }
 
   btn.disabled = false;
-  btn.innerText = lang === "es" ? "Calcular" : "Calculate";
+  btn.innerText = "Calculate";
 }
+
 </script>
 
 </body>
 </html>
-  
