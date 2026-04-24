@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -20,13 +20,29 @@
     background: #1e293b;
     padding: 30px;
     border-radius: 16px;
-    width: 350px;
+    width: 360px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   }
 
   h1 {
-    margin-bottom: 20px;
-    font-size: 24px;
+    font-size: 22px;
+    margin-bottom: 15px;
+  }
+
+  .lang {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .lang button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: #334155;
+    color: white;
   }
 
   input, select {
@@ -35,7 +51,6 @@
     margin: 8px 0;
     border-radius: 8px;
     border: none;
-    outline: none;
   }
 
   button {
@@ -59,15 +74,14 @@
     background: #0f172a;
     padding: 15px;
     border-radius: 10px;
-    font-size: 16px;
-    white-space: pre-line;
+    font-size: 15px;
     min-height: 60px;
+    white-space: pre-line;
   }
 
   .label {
     font-size: 12px;
     opacity: 0.7;
-    margin-top: 5px;
   }
 </style>
 </head>
@@ -75,28 +89,49 @@
 <body>
 
 <div class="card">
-  <h1>💰 RateFinder</h1>
 
-  <input id="job" placeholder="Job (dev, designer, vet)" />
-  <div class="label">Try: dev, designer, UX</div>
+  <div class="lang">
+    <button onclick="setLang('es')">ES</button>
+    <button onclick="setLang('en')">EN</button>
+  </div>
 
+  <h1 id="title">💰 RateFinder</h1>
+
+  <input id="job" placeholder="Job / Trabajo (dev, designer)" />
   <select id="level">
     <option value="junior">Junior</option>
     <option value="mid">Mid</option>
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country (CL, US, CA)" />
-  <div class="label">Try: CL, US, CA</div>
+  <input id="country" placeholder="Country / País (CL, US, CA)" />
 
-  <button id="calculateBtn" onclick="calculate()">Calculate</button>
+  <button id="btn" onclick="calculate()">Calculate</button>
 
   <div id="result" class="result"></div>
 </div>
 
 <script>
+let lang = "es";
+
+function setLang(l) {
+  lang = l;
+
+  document.getElementById("title").innerText =
+    l === "es" ? "💰 RateFinder" : "💰 RateFinder";
+
+  document.getElementById("btn").innerText =
+    l === "es" ? "Calcular" : "Calculate";
+
+  document.getElementById("job").placeholder =
+    l === "es" ? "Trabajo (dev, diseñador)" : "Job (dev, designer)";
+
+  document.getElementById("country").placeholder =
+    l === "es" ? "País (CL, US, CA)" : "Country (CL, US, CA)";
+}
+
 async function calculate() {
-  const btn = document.getElementById("calculateBtn");
+  const btn = document.getElementById("btn");
   const result = document.getElementById("result");
 
   const job = document.getElementById("job").value.trim();
@@ -104,12 +139,14 @@ async function calculate() {
   const country = document.getElementById("country").value.trim();
 
   if (!job || !country) {
-    result.innerText = "⚠️ Please fill job and country";
+    result.innerText = lang === "es"
+      ? "⚠️ Completa job y país"
+      : "⚠️ Please fill job and country";
     return;
   }
 
   btn.disabled = true;
-  btn.innerText = "Calculating...";
+  btn.innerText = lang === "es" ? "Calculando..." : "Calculating...";
   result.innerText = "Loading...";
 
   try {
@@ -119,35 +156,35 @@ async function calculate() {
       "&level=" + encodeURIComponent(level) +
       "&country=" + encodeURIComponent(country);
 
-    const response = await fetch(url, {
-      method: "GET",
-      cache: "no-store"
-    });
+    const response = await fetch(url, { cache: "no-store" });
 
     if (!response.ok) {
-      throw new Error("Backend error: " + response.status);
+      throw new Error("Server error " + response.status);
     }
 
     const data = await response.json();
 
-    if (!data || data.min === undefined || data.max === undefined) {
-      throw new Error("Invalid backend response");
+    // 🔥 FIX IMPORTANTE: evitar 0 falsos
+    if (!data || !data.min || !data.max || data.min === 0 || data.max === 0) {
+      throw new Error("No data found for this query");
     }
 
     result.innerText =
-      "💰 Estimated Salary Range\n\n" +
-      "$" + data.min + " - $" + data.max + "\n\n" +
-      "📍 " + (data.country || "").toUpperCase() +
-      " | " + data.job +
-      " | " + data.level;
+      lang === "es"
+        ? `💰 Rango estimado\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()} | ${data.job} | ${data.level}`
+        : `💰 Estimated salary range\n\n$${data.min} - $${data.max}\n\n📍 ${data.country.toUpperCase()} | ${data.job} | ${data.level}`;
 
   } catch (err) {
     console.log(err);
-    result.innerText = "Error connecting to backend: " + err.message;
+
+    result.innerText =
+      lang === "es"
+        ? "❌ No se encontraron datos o error del servidor"
+        : "❌ No data found or server error";
   }
 
   btn.disabled = false;
-  btn.innerText = "Calculate";
+  btn.innerText = lang === "es" ? "Calcular" : "Calculate";
 }
 </script>
 
