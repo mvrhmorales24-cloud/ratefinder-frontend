@@ -50,6 +50,7 @@
     margin: 8px 0;
     border-radius: 8px;
     border: none;
+    outline: none;
   }
 
   button {
@@ -90,7 +91,7 @@
 
   <h1 id="title">💰 RateFinder</h1>
 
-  <input id="job" placeholder="Job / Trabajo" />
+  <input id="job" placeholder="Job / Trabajo (dev, designer, vet)" />
 
   <select id="level">
     <option value="junior">Junior</option>
@@ -98,7 +99,7 @@
     <option value="senior">Senior</option>
   </select>
 
-  <input id="country" placeholder="Country / País" />
+  <input id="country" placeholder="Country / País (CL, US, CA)" />
 
   <button id="btn" onclick="calculate()">Calcular</button>
 
@@ -118,10 +119,14 @@ function setLang(l) {
     l === "es" ? "Calcular" : "Calculate";
 
   document.getElementById("job").placeholder =
-    l === "es" ? "Trabajo (dev, designer)" : "Job (dev, designer)";
+    l === "es"
+      ? "Trabajo (dev, diseñador, vet)"
+      : "Job (dev, designer, vet)";
 
   document.getElementById("country").placeholder =
-    l === "es" ? "País (CL, US, CA)" : "Country (CL, US, CA)";
+    l === "es"
+      ? "País (CL, US, CA)"
+      : "Country (CL, US, CA)";
 }
 
 async function calculate() {
@@ -159,12 +164,14 @@ async function calculate() {
 
     const data = await response.json();
 
-    // ✔ validación segura (FIX REAL)
+    // ✅ VALIDACIÓN CORRECTA (FIX FINAL)
     if (
       data.min === undefined ||
       data.max === undefined ||
-      isNaN(data.min) ||
-      isNaN(data.max)
+      data.min === null ||
+      data.max === null ||
+      isNaN(Number(data.min)) ||
+      isNaN(Number(data.max))
     ) {
       throw new Error("Invalid backend data");
     }
@@ -190,3 +197,4 @@ async function calculate() {
 
 </body>
 </html>
+  
